@@ -1,0 +1,73 @@
+# Vector log aggregation configuration for Whānaki (production)
+#
+# Pipeline:
+#   Docker socket → parse JSON → enrich with container metadata
+#     → file sink (persistent, survives container restarts)
+#
+# To forward logs to an external service instead of (or in addition to)
+# the local file, add a second sink below. Examples are provided as comments.
+#
+# Access logs: docker exec -it whanaki-vector-1 cat /var/log/whanaki/app.log
+# Or mount the log_data volume to the host for direct access.
+
+# ── Source: Docker container logs ─────────────────────────────────────────────
+
+[sources.docker]
+type = "docker_logs"
+# Collect only Whānaki application containers (exclude Vector itself)
+include_labels = { "com.docker.compose.project" = "whanaki" }
+exclude_containers = ["vector"]
+
+# ── Transform: parse and enrich ───────────────────────────────────────────────
+
+[transforms.parse_and_enrich]
+type = "remap"
+inputs = ["docker"]
+source = '''
+# Attempt to parse the message as JSON (structlog production output).
+# If it's not JSON (e.g. a startup message), keep it as-is.
+structured, err = parse_json(.message)
+if err == null {
+  . = merge(., structured)
+}
+
+# Always keep these fields for correlation
+.container = .container_name
+.stream    = .stream
+.timestamp = .timestamp
+
+# Drop noisy Docker metadata we don't need in the log store
+del(.label)
+del(.image)
+del(.host)
+'''
+
+# ── Sink: local log file (persistent volume, survives restarts) ────────────────
+
+[sinks.file]
+type = "file"
+inputs = ["parse_and_enrich"]
+# Date-rotated files: one file per day, kept by the volume indefinitely.
+# Add an external logrotate config if you need automatic deletion.
+path = "/var/log/whanaki/app-%Y-%m-%d.ndjson"
+
+[sinks.file.encoding]
+codec = "json"
+
+# ── Optional: forward to Loki (uncomment to enable) ──────────────────────────
+#
+# [sinks.loki]
+# type = "loki"
+# inputs = ["parse_and_enrich"]
+# endpoint = "http://loki:3100"
+# labels = { app = "whanaki", env = "production" }
+# [sinks.loki.encoding]
+# codec = "json"
+
+# ── Optional: forward to Datadog (uncomment to enable) ───────────────────────
+#
+# [sinks.datadog]
+# type = "datadog_logs"
+# inputs = ["parse_and_enrich"]
+# default_api_key = "${DATADOG_API_KEY}"
+# site = "datadoghq.com"

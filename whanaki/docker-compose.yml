@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+
+  # ── FastAPI Backend ────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://whanaki:whanaki@postgres:5432/whanaki
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_HOST=http://ollama:11434
+      - RAGFLOW_HOST=http://ragflow:9380
+      - RAGFLOW_API_KEY=${RAGFLOW_API_KEY:-ragflow-dev-key}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - whanaki
+    restart: unless-stopped
+
+  # ── Next.js Frontend ───────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - whanaki
+    restart: unless-stopped
+
+  # ── Ollama (Local LLM) ─────────────────────────────────────────────────────
+  # For local dev: CPU-only. GPU droplet used in production.
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    networks:
+      - whanaki
+    restart: unless-stopped
+    # Uncomment for GPU support (requires nvidia-container-toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # ── RAGFlow ────────────────────────────────────────────────────────────────
+  ragflow:
+    image: infiniflow/ragflow:latest
+    ports:
+      - "9380:9380"
+    environment:
+      - RAGFLOW_EMBEDDING_MODEL=nomic-embed-text
+      - RAGFLOW_LLM_PROVIDER=ollama
+      - RAGFLOW_OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ragflow_data:/ragflow/data
+    depends_on:
+      - ragflow-es
+      - ragflow-infinity
+      - ollama
+    networks:
+      - whanaki
+    restart: unless-stopped
+
+  ragflow-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - whanaki
+    restart: unless-stopped
+
+  ragflow-infinity:
+    image: infiniflow/infinity:v0.2.0
+    volumes:
+      - infinity_data:/var/infinity
+    networks:
+      - whanaki
+    restart: unless-stopped
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=whanaki
+      - POSTGRES_USER=whanaki
+      - POSTGRES_PASSWORD=whanaki
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U whanaki"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - whanaki
+    restart: unless-stopped
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - whanaki
+    restart: unless-stopped
+
+  # ── Nginx (local dev reverse proxy) ───────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/dev.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - whanaki
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  ollama_models:
+  ragflow_data:
+  esdata:
+  infinity_data:
+
+networks:
+  whanaki:
+    driver: bridge

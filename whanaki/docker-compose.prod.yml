@@ -1,0 +1,140 @@
+version: '3.8'
+
+# Production compose — Ollama runs on a SEPARATE GPU droplet.
+# Set OLLAMA_HOST in .env to the GPU droplet's private VPC IP.
+
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: always
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - OLLAMA_HOST=${OLLAMA_HOST}
+      - RAGFLOW_HOST=http://ragflow:9380
+      - RAGFLOW_API_KEY=${RAGFLOW_API_KEY}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRICE_STARTER=${STRIPE_PRICE_STARTER}
+      - STRIPE_PRICE_PROFESSIONAL=${STRIPE_PRICE_PROFESSIONAL}
+      - STRIPE_PRICE_ENTERPRISE=${STRIPE_PRICE_ENTERPRISE}
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+      - SECRET_KEY=${SECRET_KEY}
+      - APP_URL=${APP_URL}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+    # NOTE: docker compose (non-Swarm) ignores deploy.replicas. Scale via:
+    #   docker compose -f docker-compose.prod.yml up -d --scale backend=2
+    # or use Docker Swarm / Kubernetes for replicated orchestration.
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    networks:
+      - whanaki
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+    restart: always
+    networks:
+      - whanaki
+
+  ragflow:
+    image: infiniflow/ragflow:latest
+    restart: always
+    environment:
+      - RAGFLOW_API_KEY=${RAGFLOW_API_KEY}
+      # Elasticsearch credentials — must match ELASTIC_PASSWORD below
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ragflow_data:/ragflow/data
+    depends_on:
+      - ragflow-es
+      - ragflow-infinity
+    networks:
+      - whanaki
+
+  ragflow-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=-Xms1g -Xmx2g
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - whanaki
+
+  ragflow-infinity:
+    image: infiniflow/infinity:v0.2.0
+    restart: always
+    volumes:
+      - infinity_data:/var/infinity
+    networks:
+      - whanaki
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - whanaki
+
+  # ── Log aggregation ─────────────────────────────────────────────────────────
+  # Vector reads all container logs from the Docker socket, parses structlog
+  # JSON, and writes date-rotated NDJSON files to a persistent volume.
+  # Logs survive container restarts. Add a Loki/Datadog sink to vector.toml
+  # to forward logs to an external observability platform.
+  vector:
+    image: timberio/vector:0.41.1-alpine
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./infra/vector/vector.toml:/etc/vector/vector.toml:ro
+      - log_data:/var/log/whanaki
+    environment:
+      - VECTOR_SELF_NODE_NAME=whanaki-prod
+    networks:
+      - whanaki
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+volumes:
+  ragflow_data:
+  esdata:
+  infinity_data:
+  log_data:
+
+networks:
+  whanaki:
+    driver: bridge

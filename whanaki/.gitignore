@@ -1,0 +1,37 @@
+# Environment — NEVER commit these
+.env
+.env.local
+.env.production
+*.env
+
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+.pytest_cache/
+
+# Docker volumes (local data)
+postgres_data/
+redis_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic (keep migrations, ignore pycache inside)
+backend/alembic/__pycache__/
