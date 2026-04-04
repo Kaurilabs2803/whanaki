@@ -492,6 +492,12 @@ chmod +x setup-server.sh
 
 # Run it
 ./setup-server.sh
+
+> **If you see `/bin/bash^M: bad interpreter`:** This happens when the file was copied from a Windows computer and has Windows-style line endings. Fix it with:
+> ```bash
+> sed -i 's/\r$//' setup-server.sh
+> ./setup-server.sh
+> ```
 ```
 
 > **Important:** Replace `YOUR_GITHUB_USERNAME` with your actual GitHub username.
@@ -516,6 +522,12 @@ ssh root@YOUR_DROPLET_IP
 chmod +x setup-server.sh
 ./setup-server.sh
 ```
+
+> **If you see `/bin/bash^M: bad interpreter`:** This happens when the file was copied from a Windows computer and has Windows-style line endings. Fix it with:
+> ```bash
+> sed -i 's/\r$//' setup-server.sh
+> ./setup-server.sh
+> ```
 
 ---
 
