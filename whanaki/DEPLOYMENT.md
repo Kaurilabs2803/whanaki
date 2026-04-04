@@ -125,11 +125,22 @@ You will be taken to a page with instructions. Keep this browser tab open.
 
 ### Step 0.2: Push the Local Code to GitHub
 
-Open your terminal on your local computer, navigate to the folder where this project lives, and run these commands **one by one**:
+> **Critical:** This project may be sitting inside a parent download folder (e.g. `whanaki-phase3-complete/whanaki/`). You must push from the **inner `whanaki` folder** — the one that directly contains `backend/`, `frontend/`, `infra/`, and `.github/workflows/`.
+>
+> Pushing from the wrong folder will create an extra nested folder on GitHub, which breaks the setup script and the auto-deploy pipeline.
+
+Open your terminal on your local computer and run these commands **one by one**:
 
 ```bash
-# Make sure you are inside the whanaki project folder
-cd /path/to/whanaki
+# Navigate to the INNER whanaki folder.
+# If your folder structure looks like whanaki-phase3-complete/whanaki/,
+# you MUST cd into the second whanaki folder:
+cd "C:\Users\sampa\Downloads\Projects\Kauri Labs Limited\Kauri Labs Kiwi\Products\whanaki-phase3-complete\whanaki"
+
+# (Mac/Linux users: adjust the path to wherever the inner whanaki folder is)
+
+# Verify you are in the right place — you should see backend/, frontend/, infra/, etc.
+ls
 
 # Initialize git (skip this if the folder already has a .git folder)
 git init
@@ -143,19 +154,33 @@ git commit -m "Initial commit"
 # Rename the branch to main
 git branch -M main
 
-# Connect your local folder to the GitHub repository you just created
-# IMPORTANT: Replace YOUR_USERNAME with your actual GitHub username
+# Check if a remote already exists
+git remote -v
+
+# If you see NO output, add the new remote:
 git remote add origin https://github.com/YOUR_USERNAME/whanaki.git
 
-# Push the code to GitHub
-git push -u origin main
+# If you see output pointing to the WRONG URL (e.g. it says YOUR_USERNAME literally),
+# remove it first, then add the correct one:
+git remote remove origin
+git remote add origin https://github.com/YOUR_USERNAME/whanaki.git
+
+# Push the code to GitHub.
+# If you previously pushed from the WRONG (parent) folder and now see a nested
+# whanaki/ folder on GitHub, use --force to overwrite it with the correct structure:
+git push -u origin main --force
 ```
 
 **What this does:** It uploads every file in the Whānaki project (including the deployment scripts, Docker configs, and GitHub Actions workflows) to your GitHub account.
 
 After running these commands, refresh your GitHub repository page in the browser. You should see all the files listed there, including `.github/workflows/deploy.yml`.
 
-> **Common mistake:** If `git remote add origin` fails with "fatal: remote origin already exists," it means this folder is already linked to a different repository. Run `git remote -v` to check. If it points to the wrong place, remove it with `git remote remove origin` and then re-run the `git remote add origin` command.
+> **Common mistake:** If you see `error: remote origin already exists.`, it means this folder was already linked to a repository (possibly with a placeholder URL like `YOUR_USERNAME`). Always run `git remote -v` first. If the URL is wrong, run `git remote remove origin` before `git remote add origin`.
+
+> **Another common mistake:** If `git push` says `Repository not found`, double-check three things:
+> 1. You actually created the repository on GitHub first (Step 0.1).
+> 2. You replaced `YOUR_USERNAME` with your real GitHub username in the URL.
+> 3. The repository name in the URL exactly matches the name you created on GitHub.
 
 ---
 
