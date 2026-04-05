@@ -78,7 +78,7 @@ class RAGFlowClient:
                 "delimiter": "\n!?;。；！？",
             },
         }
-        r = await self._client.post("/api/v1/datasets", json=payload)
+        r = await self._client.post("/v1/datasets", json=payload)
         r.raise_for_status()
         data = r.json()
         dataset_id = data["data"]["id"]
@@ -88,7 +88,7 @@ class RAGFlowClient:
     async def get_dataset(self, dataset_id: str) -> Optional[dict]:
         """Fetch dataset metadata."""
         try:
-            r = await self._client.get(f"/api/v1/datasets/{dataset_id}")
+            r = await self._client.get(f"/v1/datasets/{dataset_id}")
             r.raise_for_status()
             return r.json().get("data")
         except Exception:
@@ -112,7 +112,7 @@ class RAGFlowClient:
 
         async with httpx.AsyncClient(base_url=self.base_url, timeout=120.0) as client:
             r = await client.post(
-                f"/api/v1/datasets/{dataset_id}/documents",
+                f"/v1/datasets/{dataset_id}/documents",
                 files=files,
                 headers=headers,
             )
@@ -126,7 +126,7 @@ class RAGFlowClient:
     async def start_ingest(self, dataset_id: str, doc_ids: list[str]) -> bool:
         """Trigger chunking + embedding for uploaded documents."""
         r = await self._client.post(
-            f"/api/v1/datasets/{dataset_id}/chunks",
+            f"/v1/datasets/{dataset_id}/chunks",
             json={"document_ids": doc_ids},
         )
         r.raise_for_status()
@@ -136,7 +136,7 @@ class RAGFlowClient:
     async def get_ingest_status(self, dataset_id: str, doc_id: str) -> IngestStatus:
         """Poll ingest progress for a document."""
         try:
-            r = await self._client.get(f"/api/v1/datasets/{dataset_id}/documents/{doc_id}")
+            r = await self._client.get(f"/v1/datasets/{dataset_id}/documents/{doc_id}")
             r.raise_for_status()
             data = r.json().get("data", {})
             run_status = data.get("run", "pending")
@@ -185,7 +185,7 @@ class RAGFlowClient:
         """Remove a document and its chunks from RAGFlow."""
         try:
             r = await self._client.delete(
-                f"/api/v1/datasets/{dataset_id}/documents",
+                f"/v1/datasets/{dataset_id}/documents",
                 json={"ids": [doc_id]},
             )
             return r.status_code in (200, 204)
@@ -229,7 +229,7 @@ class RAGFlowClient:
         if doc_ids:
             payload["document_ids"] = doc_ids
 
-        r = await self._client.post("/api/v1/retrieval", json=payload)
+        r = await self._client.post("/v1/retrieval", json=payload)
         r.raise_for_status()
         data = r.json()
 
@@ -259,7 +259,7 @@ class RAGFlowClient:
         import time
         try:
             t0 = time.monotonic()
-            r = await self._client.get("/api/v1/system/version", timeout=5)
+            r = await self._client.get("/v1/system/version", timeout=5)
             ms = (time.monotonic() - t0) * 1000
             return r.status_code == 200, ms
         except Exception:

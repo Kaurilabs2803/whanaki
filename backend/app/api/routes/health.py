@@ -57,7 +57,7 @@ async def _check_ragflow() -> ServiceHealth:
     try:
         t0 = time.monotonic()
         async with httpx.AsyncClient(timeout=5) as client:
-            r = await client.get(f"{settings.ragflow_host}/v1/system/version")
+            r = await client.get(f"{settings.ragflow_host}/v1/llm/factories")
         ms = (time.monotonic() - t0) * 1000
         if r.status_code < 500:
             return ServiceHealth(status="ok", latency_ms=round(ms, 1))
