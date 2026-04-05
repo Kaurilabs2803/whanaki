@@ -14,8 +14,8 @@ export default function HomePage() {
             <Shield className="h-5 w-5" />
           </div>
           <div>
-            <p className="font-serif text-2xl font-bold">Whanaki</p>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted-foreground)]">Knowledge Workspace</p>
+            <p className="font-serif text-xl font-bold">Whanaki</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Knowledge Workspace</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -49,31 +49,31 @@ export default function HomePage() {
             Regional processing and document grounded answers
           </div>
 
-          <h1 className="mt-8 max-w-4xl text-5xl font-bold leading-[1.02] lg:text-7xl">
+          <h1 className="mt-6 max-w-4xl text-4xl font-bold leading-[1.05] lg:text-5xl">
             A knowledge workspace that feels built for New Zealand practice.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted-foreground)]">
+          <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
             Whanaki turns your documents into a calm, credible research surface with cited answers,
             stronger retrieval, and a visual language that feels editorial instead of synthetic.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
             <SignUpButton mode="modal">
-              <button className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3.5 text-sm font-semibold text-[var(--primary-foreground)] shadow-soft transition hover:brightness-95">
+              <button className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--primary-foreground)] shadow-soft transition hover:brightness-95">
                 Create workspace
                 <ArrowRight className="h-4 w-4" />
               </button>
             </SignUpButton>
             <Link
               href="#capabilities"
-              className="rounded-full border border-[var(--border)] bg-[rgba(255,255,255,0.52)] px-6 py-3.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--secondary)]"
+              className="rounded-full border border-[var(--border)] bg-[rgba(255,255,255,0.52)] px-6 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--secondary)]"
             >
               Explore capabilities
             </Link>
           </div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-3">
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
               ["Sovereign posture", "Built for teams that care where their documents live and how answers are formed."],
               ["Cited reasoning", "Responses reference source material so review feels grounded, not speculative."],
@@ -91,8 +91,8 @@ export default function HomePage() {
           <div className="surface-card grain-bg relative overflow-hidden rounded-[2rem] p-6 lg:p-7">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted-foreground)]">Research board</p>
-                <h2 className="mt-2 text-2xl font-bold">Citations stay in view</h2>
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Research board</p>
+                <h2 className="mt-2 text-xl font-bold">Citations stay in view</h2>
               </div>
               <div className="rounded-full bg-[rgba(46,125,50,0.12)] px-3 py-1 text-xs font-semibold text-[var(--primary)]">
                 Live workspace
@@ -101,7 +101,7 @@ export default function HomePage() {
 
             <div className="mt-6 space-y-4">
               <div className="rounded-[1.5rem] border border-[rgba(46,125,50,0.12)] bg-[rgba(255,255,255,0.68)] p-4">
-                <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-foreground)]">Prompt</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Prompt</p>
                 <p className="mt-2 text-sm leading-7 text-[var(--foreground)]">
                   Summarise the obligations in this lease review pack and point to the clauses that
                   create landlord exposure.
@@ -110,7 +110,7 @@ export default function HomePage() {
               <div className="rounded-[1.5rem] bg-[var(--sidebar)] p-5">
                 <div className="mb-3 flex items-center gap-2 text-[var(--primary)]">
                   <ScrollText className="h-4 w-4" />
-                  <span className="text-xs font-semibold uppercase tracking-[0.24em]">Response stream</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.2em]">Response stream</span>
                 </div>
                 <p className="text-sm leading-7 text-[var(--foreground)]">
                   The rent review mechanism is tied to CPI movement, but the notice provision appears
@@ -120,12 +120,12 @@ export default function HomePage() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-[1.35rem] border border-[rgba(46,125,50,0.14)] bg-[rgba(200,230,201,0.55)] p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent-foreground)]">Source one</p>
+                  <p className="text-xs uppercase tracking-[0.15em] text-[var(--accent-foreground)]">Source one</p>
                   <p className="mt-2 text-sm font-semibold">Lease Review Pack.pdf</p>
                   <p className="mt-1 text-xs text-[var(--muted-foreground)]">Clause 18, page 14</p>
                 </div>
                 <div className="rounded-[1.35rem] border border-[rgba(109,76,65,0.12)] bg-[rgba(240,233,224,0.9)] p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted-foreground)]">Model posture</p>
+                  <p className="text-xs uppercase tracking-[0.15em] text-[var(--muted-foreground)]">Model posture</p>
                   <p className="mt-2 text-sm font-semibold">Balanced retrieval</p>
                   <p className="mt-1 text-xs text-[var(--muted-foreground)]">Context first, no speculative filler.</p>
                 </div>
@@ -158,7 +158,7 @@ export default function HomePage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-[1.15rem] bg-[rgba(200,230,201,0.6)] text-[var(--primary)]">
                 <Icon className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 text-2xl font-bold">{title}</h3>
+              <h3 className="mt-5 text-xl font-bold">{title}</h3>
               <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{body}</p>
             </div>
           ))}
