@@ -71,19 +71,16 @@ async def onboard(
     db.add(tenant)
     await db.flush()  # Assigns tenant.id without committing
 
-    # Provision RAGFlow dataset before commit — keeps everything atomic.
-    # If RAGFlow is unavailable the flush is rolled back and the user can retry.
+    # Provision RAGFlow dataset if available — non-blocking so workspace creation
+    # succeeds even when RAGFlow is down. Dataset can be created lazily later.
     ragflow = get_ragflow_client()
     try:
         dataset_id = await ragflow.create_dataset(str(tenant.id), body.slug)
         tenant.ragflow_dataset_id = dataset_id
         log.info("ragflow_dataset_provisioned", tenant_id=str(tenant.id), dataset_id=dataset_id)
     except Exception as e:
-        log.error("ragflow_provision_failed", tenant_id=str(tenant.id), error=str(e))
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Workspace setup failed — knowledge base could not be initialised. Please try again.",
-        )
+        tenant.ragflow_dataset_id = None
+        log.warning("ragflow_provision_failed", tenant_id=str(tenant.id), error=str(e))
 
     # Create User (as tenant_admin — first user owns the tenant)
     user = User(

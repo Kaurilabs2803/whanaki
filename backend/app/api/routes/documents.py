@@ -106,12 +106,6 @@ async def upload_document(
     """
     tenant = await _get_tenant(db, current_user.tenant_id)
 
-    if not tenant.ragflow_dataset_id:
-        raise HTTPException(
-            status_code=412,
-            detail="Workspace not initialised. Contact support.",
-        )
-
     # Validate
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
@@ -125,18 +119,19 @@ async def upload_document(
 
     tag_list = [t.strip() for t in tags.split(",")] if tags else []
 
-    # Upload to RAGFlow
-    ragflow = get_ragflow_client()
-    try:
-        ragflow_doc_id = await ragflow.upload_document(
-            dataset_id=tenant.ragflow_dataset_id,
-            filename=file.filename,
-            file_bytes=file_bytes,
-            content_type=file.content_type,
-        )
-    except Exception as e:
-        log.error("ragflow_upload_failed", error=str(e))
-        raise HTTPException(status_code=502, detail=f"Document storage failed: {str(e)}")
+    # Upload to RAGFlow if available; otherwise store locally and mark failed
+    ragflow_doc_id = None
+    if tenant.ragflow_dataset_id:
+        ragflow = get_ragflow_client()
+        try:
+            ragflow_doc_id = await ragflow.upload_document(
+                dataset_id=tenant.ragflow_dataset_id,
+                filename=file.filename,
+                file_bytes=file_bytes,
+                content_type=file.content_type,
+            )
+        except Exception as e:
+            log.error("ragflow_upload_failed", error=str(e))
 
     # Create DB record
     doc = Document(
@@ -146,8 +141,8 @@ async def upload_document(
         original_filename=file.filename,
         content_type=file.content_type,
         size_bytes=len(file_bytes),
-        status=DocumentStatus.processing,
-        storage_key=f"{tenant.id}/{ragflow_doc_id}/{file.filename}",
+        status=DocumentStatus.processing if ragflow_doc_id else DocumentStatus.failed,
+        storage_key=f"{tenant.id}/{ragflow_doc_id or 'local'}/{file.filename}",
         ragflow_doc_id=ragflow_doc_id,
         tags=tag_list,
     )
@@ -155,20 +150,22 @@ async def upload_document(
     await db.commit()
     await db.refresh(doc)
 
-    # Queue background ingest
-    background_tasks.add_task(
-        _ingest_background,
-        doc_id=doc.id,
-        tenant_id=tenant.id,
-        ragflow_doc_id=ragflow_doc_id,
-        dataset_id=tenant.ragflow_dataset_id,
-    )
+    # Queue background ingest only if RAGFlow accepted the file
+    if ragflow_doc_id and tenant.ragflow_dataset_id:
+        background_tasks.add_task(
+            _ingest_background,
+            doc_id=doc.id,
+            tenant_id=tenant.id,
+            ragflow_doc_id=ragflow_doc_id,
+            dataset_id=tenant.ragflow_dataset_id,
+        )
 
     log.info(
         "document_uploaded",
         doc_id=str(doc.id),
         filename=file.filename,
         size_bytes=len(file_bytes),
+        ragflow=bool(ragflow_doc_id),
     )
     return DocumentResponse.model_validate(doc)
 

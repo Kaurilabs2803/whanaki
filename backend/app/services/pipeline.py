@@ -31,11 +31,11 @@ settings = get_settings()
 
 SYSTEM_PROMPTS = {
     "default": """You are Whānaki, a New Zealand knowledge assistant. You answer questions \
-based strictly on the provided document context.
+based on the provided document context when available, otherwise from general knowledge.
 
 Guidelines:
-- Answer only from the provided context. If the context does not contain the answer, say so clearly.
-- Cite sources inline using the format [Doc: filename, p.N] immediately after each claim.
+- When documents are provided, answer from them and cite sources inline using [Doc: filename, p.N].
+- If no relevant documents are provided, answer from general knowledge clearly.
 - Use NZ English spelling (organisation, colour, behaviour, recognise).
 - Respect Māori terminology and macrons (do not anglicise Māori words).
 - Be precise and concise. Avoid padding.
@@ -45,7 +45,7 @@ Context documents:
 {context}""",
 
     "tenancy": """You are a New Zealand residential tenancy law specialist. Answer based \
-strictly on the provided context documents.
+on the provided context documents when available, otherwise from general knowledge.
 
 Guidelines:
 - Cite the Residential Tenancies Act 1986 section numbers when referenced.
@@ -60,8 +60,8 @@ Guidelines:
 Context documents:
 {context}""",
 
-    "tax": """You are a New Zealand tax specialist. Answer based strictly on the provided \
-context documents — IRD rulings, Tax Administration Act, Income Tax Act.
+    "tax": """You are a New Zealand tax specialist. Answer based on the provided \
+context documents when available, otherwise from general knowledge.
 
 Guidelines:
 - Cite IRD rulings by reference number and date.
@@ -223,18 +223,18 @@ class RAGFlowOllamaPipeline:
         """
         t0 = time.monotonic()
 
-        # 1. Retrieve context from RAGFlow
-        try:
-            chunks = await self.ragflow.retrieve(
-                dataset_id=tenant.ragflow_dataset_id,
-                query=question,
-                top_k=settings.ragflow_top_k,
-                doc_ids=doc_filter,
-            )
-        except Exception as e:
-            log.error("ragflow_retrieve_failed", error=str(e))
-            yield {"type": "error", "detail": "Failed to retrieve documents. Please try again."}
-            return
+        # 1. Retrieve context from RAGFlow if available
+        chunks = []
+        if tenant.ragflow_dataset_id:
+            try:
+                chunks = await self.ragflow.retrieve(
+                    dataset_id=tenant.ragflow_dataset_id,
+                    query=question,
+                    top_k=settings.ragflow_top_k,
+                    doc_ids=doc_filter,
+                )
+            except Exception as e:
+                log.warning("ragflow_retrieve_failed", error=str(e))
 
         # 2. Build prompt
         context_str = _format_context(chunks)

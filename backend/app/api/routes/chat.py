@@ -111,13 +111,6 @@ async def chat(
     """
     tenant = await _get_tenant(db, current_user.tenant_id)
 
-    # Check tenant has a RAGFlow dataset
-    if not tenant.ragflow_dataset_id:
-        raise HTTPException(
-            status_code=status.HTTP_412_PRECONDITION_FAILED,
-            detail="Workspace not fully set up. Please upload at least one document first.",
-        )
-
     # Enforce monthly quota
     await enforce_query_quota(db, tenant)
 
