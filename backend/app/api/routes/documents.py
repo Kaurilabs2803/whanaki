@@ -121,7 +121,10 @@ async def upload_document(
 
     # Upload to RAGFlow if available; otherwise store locally and mark failed
     ragflow_doc_id = None
-    if tenant.ragflow_dataset_id:
+    upload_error: Optional[str] = None
+    if not tenant.ragflow_dataset_id:
+        upload_error = "Workspace RAGFlow dataset not provisioned. Re-complete onboarding or contact support."
+    else:
         ragflow = get_ragflow_client()
         try:
             ragflow_doc_id = await ragflow.upload_document(
@@ -131,6 +134,7 @@ async def upload_document(
                 content_type=file.content_type,
             )
         except Exception as e:
+            upload_error = str(e)
             log.error("ragflow_upload_failed", error=str(e))
 
     # Create DB record
@@ -142,6 +146,7 @@ async def upload_document(
         content_type=file.content_type,
         size_bytes=len(file_bytes),
         status=DocumentStatus.processing if ragflow_doc_id else DocumentStatus.failed,
+        error_message=upload_error if not ragflow_doc_id else None,
         storage_key=f"{tenant.id}/{ragflow_doc_id or 'local'}/{file.filename}",
         ragflow_doc_id=ragflow_doc_id,
         tags=tag_list,

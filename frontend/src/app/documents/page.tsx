@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Upload, FileText, Trash2, CheckCircle, Loader2, AlertCircle, RefreshCw, Tag } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -29,7 +29,7 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const token = await getToken();
     if (!token) return;
     try {
@@ -39,18 +39,18 @@ export default function DocumentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   useEffect(() => {
-    const polling = documents.some((d) => d.status === "processing" || d.status === "uploading");
+    const polling = documents.some((d: Document) => d.status === "processing" || d.status === "uploading");
     if (!polling) return;
     const t = setInterval(load, 3000);
     return () => clearInterval(t);
-  }, [documents]);
+  }, [documents, load]);
 
   const handleUpload = async (files: FileList | null) => {
     if (!files?.length) return;

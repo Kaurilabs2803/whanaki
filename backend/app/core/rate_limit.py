@@ -16,7 +16,6 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.core.config import get_settings
-from app.core.auth import _verify_clerk_token
 
 settings = get_settings()
 
@@ -26,13 +25,17 @@ def _user_or_ip(request: Request) -> str:
     Extract the Clerk user ID (sub claim) from the Bearer token to rate-limit
     per-user rather than per-IP. Falls back to IP if no valid token is present.
 
-    Note: we intentionally skip signature verification here — the auth layer
+    Signature verification is intentionally skipped here — the auth layer
     enforces validity. We only need a stable key for bucketing.
     """
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
         try:
-            claims = _verify_clerk_token(auth[7:])
+            claims = jwt.decode(
+                auth[7:],
+                options={"verify_signature": False},
+                algorithms=["RS256"],
+            )
             sub = claims.get("sub")
             if sub:
                 return sub

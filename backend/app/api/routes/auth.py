@@ -158,7 +158,7 @@ async def delete_tenant(
     if tenant.ragflow_dataset_id:
         ragflow = get_ragflow_client()
         try:
-            await ragflow._client.delete(f"/v1/datasets/{tenant.ragflow_dataset_id}")
+            await ragflow._client.delete(f"/api/v1/datasets/{tenant.ragflow_dataset_id}")
         except Exception as e:
             log.warning("ragflow_dataset_delete_failed", tenant_id=str(tenant.id), error=str(e))
 
