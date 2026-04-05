@@ -43,7 +43,11 @@ async def _check_ollama() -> ServiceHealth:
         ms = (time.monotonic() - t0) * 1000
         if r.status_code == 200:
             models = [m["name"] for m in r.json().get("models", [])]
-            return ServiceHealth(status="ok", latency_ms=round(ms, 1), detail=f"Models: {', '.join(models) or 'none pulled yet'}")
+            return ServiceHealth(
+                status="ok",
+                latency_ms=round(ms, 1),
+                detail=f"Models: {', '.join(models) or 'none pulled yet'}",
+            )
         return ServiceHealth(status="degraded", latency_ms=round(ms, 1), detail=f"HTTP {r.status_code}")
     except Exception as e:
         return ServiceHealth(status="down", detail=str(e))
@@ -53,10 +57,8 @@ async def _check_ragflow() -> ServiceHealth:
     try:
         t0 = time.monotonic()
         async with httpx.AsyncClient(timeout=5) as client:
-            # RAGFlow v0.24+ has no /v1/health — any HTTP response means the server is up
             r = await client.get(f"{settings.ragflow_host}/v1/system/version")
         ms = (time.monotonic() - t0) * 1000
-        # 200 = ok, 404 = server up but endpoint missing, 401 = server up but auth required
         if r.status_code < 500:
             return ServiceHealth(status="ok", latency_ms=round(ms, 1))
         return ServiceHealth(status="degraded", latency_ms=round(ms, 1), detail=f"HTTP {r.status_code}")
@@ -68,9 +70,14 @@ async def _check_ragflow() -> ServiceHealth:
 async def health_check(db: AsyncSession = Depends(get_db)):
     """
     Check the health of all dependent services.
-    Returns 200 even if services are degraded — use status field to determine severity.
+    Returns 200 even if services are degraded. Use status field to determine severity.
     """
-    postgres, redis, ollama, ragflow = await _check_postgres(db), await _check_redis(), await _check_ollama(), await _check_ragflow()
+    postgres, redis, ollama, ragflow = (
+        await _check_postgres(db),
+        await _check_redis(),
+        await _check_ollama(),
+        await _check_ragflow(),
+    )
 
     services = {
         "postgres": postgres,
@@ -79,8 +86,11 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         "ragflow": ragflow,
     }
 
-    # Overall status: worst of critical services only (RAGFlow is optional)
-    critical_statuses = [services["postgres"].status, services["redis"].status, services["ollama"].status]
+    critical_statuses = [
+        services["postgres"].status,
+        services["redis"].status,
+        services["ollama"].status,
+    ]
     if "down" in critical_statuses or "degraded" in critical_statuses:
         overall = "degraded"
     else:
@@ -93,3 +103,4 @@ async def health_check(db: AsyncSession = Depends(get_db)):
 async def ping():
     """Minimal liveness probe."""
     return {"pong": True}
+

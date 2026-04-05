@@ -90,10 +90,14 @@ services:
     volumes:
       - ragflow_data:/ragflow/data
     depends_on:
-      - mysql
-      - redis
-      - es01
-      - ragflow-infinity
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      es01:
+        condition: service_healthy
+      ragflow-infinity:
+        condition: service_started
     networks:
       - whanaki
 
@@ -102,11 +106,18 @@ services:
     restart: always
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=true
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - ES_JAVA_OPTS=-Xms1g -Xmx2g
+      - ES_JAVA_OPTS=-Xms512m -Xmx1g
     volumes:
       - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -u elastic:$$ELASTIC_PASSWORD http://localhost:9200/_cluster/health | grep -q 'green\\|yellow'"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     networks:
       - whanaki
 
