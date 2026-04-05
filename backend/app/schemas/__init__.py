@@ -137,7 +137,7 @@ class ChatRequest(BaseModel):
 
 
 class CitationSchema(BaseModel):
-    doc_id: uuid.UUID
+    doc_id: str  # RAGFlow document IDs are opaque strings, not UUIDs
     filename: str
     page: Optional[int]
     section: Optional[str]

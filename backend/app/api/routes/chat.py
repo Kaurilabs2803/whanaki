@@ -18,12 +18,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from slowapi import Limiter
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_
 
 from app.core.auth import get_current_user
 from app.core.rate_limit import limiter
 from app.db.session import get_db
-from app.models import User, Tenant, Conversation, Message, OllamaModel
+from app.models import User, Tenant, Conversation, Message, OllamaModel, Document
 from app.schemas import ChatRequest, ConversationCreate, ConversationResponse, MessageResponse
 from app.services.pipeline import get_pipeline
 from app.services.quota import enforce_query_quota
@@ -63,11 +63,38 @@ async def _get_or_create_conversation(
         tenant_id=tenant.id,
         user_id=user.id,
         default_model=model,
-        document_filter=[str(d) for d in doc_filter] if doc_filter else None,
+        document_filter=doc_filter if doc_filter else None,
     )
     db.add(conv)
     await db.flush()
     return conv
+
+
+async def _validate_doc_filter(
+    db: AsyncSession,
+    tenant_id: uuid.UUID,
+    doc_ids: list[uuid.UUID],
+) -> list[str]:
+    """
+    Ensure every document in the filter belongs to this tenant.
+    Returns the validated IDs as strings (for RAGFlow).
+    Raises 403 if any ID belongs to a different tenant.
+    """
+    if not doc_ids:
+        return []
+    result = await db.execute(
+        select(Document.id).where(
+            and_(
+                Document.id.in_(doc_ids),
+                Document.tenant_id == tenant_id,
+            )
+        )
+    )
+    found = {row[0] for row in result.all()}
+    for doc_id in doc_ids:
+        if doc_id not in found:
+            raise HTTPException(status_code=403, detail=f"Document {doc_id} not accessible")
+    return [str(d) for d in doc_ids]
 
 
 async def _validate_model(db: AsyncSession, model_id: str) -> str:
@@ -117,6 +144,13 @@ async def chat(
     # Validate model
     model = await _validate_model(db, body.model)
 
+    # Validate doc filter — ensure all IDs belong to this tenant (security check)
+    validated_doc_filter = None
+    if body.document_filter:
+        validated_doc_filter = await _validate_doc_filter(
+            db, current_user.tenant_id, body.document_filter
+        )
+
     # Get or create conversation
     conv = await _get_or_create_conversation(
         db=db,
@@ -138,7 +172,7 @@ async def chat(
                 conversation_id=conv.id,
                 question=body.message,
                 model=model,
-                doc_filter=[str(d) for d in body.document_filter] if body.document_filter else None,
+                doc_filter=validated_doc_filter,
             )
         ),
         media_type="text/event-stream",

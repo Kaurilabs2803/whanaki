@@ -225,6 +225,7 @@ class RAGFlowOllamaPipeline:
 
         # 1. Retrieve context from RAGFlow if available
         chunks = []
+        retrieval_failed = False
         if tenant.ragflow_dataset_id:
             try:
                 chunks = await self.ragflow.retrieve(
@@ -235,6 +236,7 @@ class RAGFlowOllamaPipeline:
                 )
             except Exception as e:
                 log.warning("ragflow_retrieve_failed", error=str(e))
+                retrieval_failed = True
 
         # 2. Build prompt
         context_str = _format_context(chunks)
@@ -248,7 +250,7 @@ class RAGFlowOllamaPipeline:
             system_prompt=system_prompt,
         )
 
-        # 3. Store user message
+        # 3. Store user message (no flush — committed atomically with assistant msg at the end)
         user_msg = Message(
             conversation_id=conversation_id,
             tenant_id=tenant.id,
@@ -256,7 +258,6 @@ class RAGFlowOllamaPipeline:
             content=question,
         )
         db.add(user_msg)
-        await db.flush()
 
         # 4. Stream tokens from Ollama
         response_tokens: list[str] = []
@@ -275,6 +276,8 @@ class RAGFlowOllamaPipeline:
 
         except Exception as e:
             log.error("ollama_stream_failed", model=model, error=str(e))
+            # Roll back so the unflushed user_msg is not accidentally committed by get_db
+            await db.rollback()
             yield {"type": "error", "detail": f"Model error: {str(e)}"}
             return
 
@@ -334,6 +337,7 @@ class RAGFlowOllamaPipeline:
                 "generation_ms": generation_ms,
                 "chunks_retrieved": len(chunks),
                 "model": model,
+                "retrieval_failed": retrieval_failed,
             },
         }
 
