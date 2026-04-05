@@ -1,137 +1,169 @@
 import Link from "next/link";
 import { SignInButton, SignUpButton, SignedIn, SignedOut } from "@clerk/nextjs";
-import { Shield, Zap, BookOpen, ArrowRight } from "lucide-react";
+import { Shield, BookOpen, ArrowRight, Landmark, ScrollText } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white">
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
-        <span className="text-xl font-semibold text-gray-900">Whānaki</span>
-        <div className="flex items-center gap-4">
+    <main className="relative min-h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+      <div className="hero-orb left-[6%] top-[7%] h-48 w-48 bg-[rgba(76,175,80,0.14)]" />
+      <div className="hero-orb right-[8%] top-[20%] h-56 w-56 bg-[rgba(224,214,201,0.9)]" />
+
+      <nav className="relative mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--primary)] text-[var(--primary-foreground)] shadow-soft">
+            <Shield className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-serif text-2xl font-bold">Whanaki</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted-foreground)]">Knowledge Workspace</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="text-sm text-gray-600 hover:text-gray-900">Sign in</button>
+              <button className="rounded-full px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] transition hover:bg-[rgba(255,255,255,0.5)] hover:text-[var(--foreground)]">
+                Sign in
+              </button>
             </SignInButton>
             <SignUpButton mode="modal">
-              <button className="text-sm bg-[#0f6e56] text-white px-4 py-2 rounded-lg hover:bg-[#0a5441] transition">
-                Get started free
+              <button className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-[var(--primary-foreground)] shadow-soft transition hover:brightness-95">
+                Start workspace
               </button>
             </SignUpButton>
           </SignedOut>
           <SignedIn>
             <Link
               href="/dashboard"
-              className="text-sm bg-[#0f6e56] text-white px-4 py-2 rounded-lg hover:bg-[#0a5441] transition"
+              className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-[var(--primary-foreground)] shadow-soft transition hover:brightness-95"
             >
-              Go to dashboard
+              Open dashboard
             </Link>
           </SignedIn>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="max-w-3xl mx-auto px-8 pt-24 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-[#e1f5ee] text-[#0f6e56] text-sm font-medium px-3 py-1 rounded-full mb-6">
-          <Shield className="w-3.5 h-3.5" />
-          Your data never leaves New Zealand
-        </div>
+      <section className="relative mx-auto grid max-w-7xl gap-10 px-6 pb-20 pt-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-10 lg:pb-28 lg:pt-14">
+        <div className="section-fade">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(46,125,50,0.14)] bg-[rgba(255,255,255,0.48)] px-4 py-2 text-sm font-medium text-[var(--accent-foreground)] shadow-soft">
+            <Shield className="h-4 w-4" />
+            Regional processing and document grounded answers
+          </div>
 
-        <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-6">
-          AI that actually knows{" "}
-          <span className="text-[#0f6e56]">New Zealand</span>
-        </h1>
+          <h1 className="mt-8 max-w-4xl text-5xl font-bold leading-[1.02] lg:text-7xl">
+            A knowledge workspace that feels built for New Zealand practice.
+          </h1>
 
-        <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
-          Tenancy law. Tax codes. Building regs. IRD rulings. Upload your NZ documents and get
-          accurate, cited answers — powered by AI running entirely on NZ servers.
-        </p>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted-foreground)]">
+            Whanaki turns your documents into a calm, credible research surface with cited answers,
+            stronger retrieval, and a visual language that feels editorial instead of synthetic.
+          </p>
 
-        <div className="flex items-center justify-center gap-4">
-          <SignUpButton mode="modal">
-            <button className="flex items-center gap-2 bg-[#0f6e56] text-white px-6 py-3 rounded-xl text-base font-medium hover:bg-[#0a5441] transition">
-              Start free trial
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </SignUpButton>
-          <Link
-            href="#how-it-works"
-            className="text-gray-600 hover:text-gray-900 text-base"
-          >
-            How it works
-          </Link>
-        </div>
-      </section>
+          <div className="mt-10 flex flex-wrap items-center gap-4">
+            <SignUpButton mode="modal">
+              <button className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3.5 text-sm font-semibold text-[var(--primary-foreground)] shadow-soft transition hover:brightness-95">
+                Create workspace
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </SignUpButton>
+            <Link
+              href="#capabilities"
+              className="rounded-full border border-[var(--border)] bg-[rgba(255,255,255,0.52)] px-6 py-3.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--secondary)]"
+            >
+              Explore capabilities
+            </Link>
+          </div>
 
-      {/* Features */}
-      <section id="how-it-works" className="max-w-5xl mx-auto px-8 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              icon: Shield,
-              title: "Fully sovereign",
-              body: "All models run on DigitalOcean's Sydney region. No query ever touches OpenAI, Google, or overseas servers.",
-            },
-            {
-              icon: BookOpen,
-              title: "Cites its sources",
-              body: "Every answer references the exact section of the document it came from. No hallucinated law.",
-            },
-            {
-              icon: Zap,
-              title: "Three models, one click",
-              body: "Fast answers in seconds, or deep legal analysis. Choose the right model for the task.",
-            },
-          ].map(({ icon: Icon, title, body }) => (
-            <div key={title} className="p-6 rounded-2xl border border-gray-100 hover:border-[#9fe1cb] transition">
-              <div className="w-10 h-10 bg-[#e1f5ee] rounded-xl flex items-center justify-center mb-4">
-                <Icon className="w-5 h-5 text-[#0f6e56]" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing teaser */}
-      <section className="bg-gray-50 py-20">
-        <div className="max-w-4xl mx-auto px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple NZD pricing</h2>
-          <p className="text-gray-500 mb-12">14-day free trial. No credit card required.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="mt-12 grid gap-4 sm:grid-cols-3">
             {[
-              { name: "Starter", price: "$99", queries: "200 queries/mo", pages: "500 pages" },
-              { name: "Professional", price: "$299", queries: "1,000 queries/mo", pages: "2,000 pages", featured: true },
-              { name: "Enterprise", price: "$799", queries: "Unlimited queries", pages: "Unlimited pages" },
-            ].map(({ name, price, queries, pages, featured }) => (
-              <div
-                key={name}
-                className={`p-6 rounded-2xl text-left ${
-                  featured
-                    ? "bg-[#0f6e56] text-white"
-                    : "bg-white border border-gray-200"
-                }`}
-              >
-                <div className={`text-sm font-medium mb-1 ${featured ? "text-[#9fe1cb]" : "text-[#0f6e56]"}`}>
-                  {name}
-                </div>
-                <div className={`text-3xl font-bold mb-1 ${featured ? "text-white" : "text-gray-900"}`}>
-                  {price}
-                  <span className={`text-base font-normal ${featured ? "text-[#9fe1cb]" : "text-gray-400"}`}>/mo NZD</span>
-                </div>
-                <div className={`text-sm mb-1 ${featured ? "text-[#9fe1cb]" : "text-gray-500"}`}>{queries}</div>
-                <div className={`text-sm ${featured ? "text-[#9fe1cb]" : "text-gray-500"}`}>{pages}</div>
+              ["Sovereign posture", "Built for teams that care where their documents live and how answers are formed."],
+              ["Cited reasoning", "Responses reference source material so review feels grounded, not speculative."],
+              ["Editorial UI", "Warm materials, sharper typography, and less of the commodity app feeling."],
+            ].map(([title, body]) => (
+              <div key={title} className="surface-card rounded-[1.5rem] p-5">
+                <p className="text-sm font-semibold text-[var(--foreground)]">{title}</p>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{body}</p>
               </div>
             ))}
           </div>
         </div>
+
+        <div className="section-fade relative">
+          <div className="surface-card grain-bg relative overflow-hidden rounded-[2rem] p-6 lg:p-7">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted-foreground)]">Research board</p>
+                <h2 className="mt-2 text-2xl font-bold">Citations stay in view</h2>
+              </div>
+              <div className="rounded-full bg-[rgba(46,125,50,0.12)] px-3 py-1 text-xs font-semibold text-[var(--primary)]">
+                Live workspace
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <div className="rounded-[1.5rem] border border-[rgba(46,125,50,0.12)] bg-[rgba(255,255,255,0.68)] p-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-foreground)]">Prompt</p>
+                <p className="mt-2 text-sm leading-7 text-[var(--foreground)]">
+                  Summarise the obligations in this lease review pack and point to the clauses that
+                  create landlord exposure.
+                </p>
+              </div>
+              <div className="rounded-[1.5rem] bg-[var(--sidebar)] p-5">
+                <div className="mb-3 flex items-center gap-2 text-[var(--primary)]">
+                  <ScrollText className="h-4 w-4" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.24em]">Response stream</span>
+                </div>
+                <p className="text-sm leading-7 text-[var(--foreground)]">
+                  The rent review mechanism is tied to CPI movement, but the notice provision appears
+                  asymmetric in favour of the landlord. The cap is described in Schedule 2 and the
+                  dispute route is set out in clause 18.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[1.35rem] border border-[rgba(46,125,50,0.14)] bg-[rgba(200,230,201,0.55)] p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent-foreground)]">Source one</p>
+                  <p className="mt-2 text-sm font-semibold">Lease Review Pack.pdf</p>
+                  <p className="mt-1 text-xs text-[var(--muted-foreground)]">Clause 18, page 14</p>
+                </div>
+                <div className="rounded-[1.35rem] border border-[rgba(109,76,65,0.12)] bg-[rgba(240,233,224,0.9)] p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted-foreground)]">Model posture</p>
+                  <p className="mt-2 text-sm font-semibold">Balanced retrieval</p>
+                  <p className="mt-1 text-xs text-[var(--muted-foreground)]">Context first, no speculative filler.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <footer className="py-8 text-center text-sm text-gray-400">
-        © {new Date().getFullYear()} Kauri Labs Limited · Upper Hutt, New Zealand
-      </footer>
+      <section id="capabilities" className="mx-auto max-w-7xl px-6 pb-24 lg:px-10">
+        <div className="grid gap-5 md:grid-cols-3">
+          {[
+            {
+              icon: Landmark,
+              title: "Sovereign by posture",
+              body: "The product language, data story, and system surface all support trust instead of leaning on generic AI tropes.",
+            },
+            {
+              icon: BookOpen,
+              title: "Reading room feel",
+              body: "Serif headings, grounded neutrals, and editorial contrast give the product weight without hurting usability.",
+            },
+            {
+              icon: Shield,
+              title: "Core flows preserved",
+              body: "Documents, chat, billing, and settings keep the same underlying behavior while the interface feels more considered.",
+            },
+          ].map(({ icon: Icon, title, body }) => (
+            <div key={title} className="surface-card rounded-[1.75rem] p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[1.15rem] bg-[rgba(200,230,201,0.6)] text-[var(--primary)]">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-5 text-2xl font-bold">{title}</h3>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }

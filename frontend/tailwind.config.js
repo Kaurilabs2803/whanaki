@@ -8,16 +8,24 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        pounamu: {
-          50:  "#e1f5ee",
-          100: "#9fe1cb",
-          200: "#5dcaa5",
-          400: "#1d9e75",
-          500: "#0f6e56",
-          600: "#0a5441",
-          700: "#06372a",
-          900: "#02160f",
+        earth: {
+          bg: "var(--background)",
+          fg: "var(--foreground)",
+          card: "var(--card)",
+          muted: "var(--muted)",
+          accent: "var(--accent)",
+          primary: "var(--primary)",
+          border: "var(--border)",
+          ring: "var(--ring)",
         },
+      },
+      fontFamily: {
+        sans: ["var(--font-sans)"],
+        serif: ["var(--font-serif)"],
+        mono: ["var(--font-mono)"],
+      },
+      boxShadow: {
+        soft: "var(--shadow-soft)",
       },
     },
   },

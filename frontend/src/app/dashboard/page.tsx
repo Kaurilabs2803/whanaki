@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { MessageSquare, FileText, BarChart2, ArrowRight, Shield } from "lucide-react";
+import { MessageSquare, FileText, BarChart2, ArrowRight, Shield, Sparkles } from "lucide-react";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -9,67 +9,89 @@ export default async function DashboardPage() {
   const user = await currentUser();
 
   const cards = [
-    { href: "/chat",      icon: MessageSquare, title: "Start a conversation",  desc: "Ask questions about your uploaded documents",   cta: "Open chat"      },
-    { href: "/documents", icon: FileText,      title: "Manage documents",       desc: "Upload PDFs, Word docs, and text files",         cta: "View documents" },
-    { href: "/usage",     icon: BarChart2,     title: "Check usage",            desc: "See your query count and monthly breakdown",     cta: "View usage"     },
+    { href: "/chat", icon: MessageSquare, title: "Open a conversation", desc: "Ask grounded questions across your uploaded materials.", cta: "Enter chat" },
+    { href: "/documents", icon: FileText, title: "Shape your corpus", desc: "Upload and manage the documents that power retrieval.", cta: "View documents" },
+    { href: "/usage", icon: BarChart2, title: "Track activity", desc: "See how the workspace is being used this billing period.", cta: "See usage" },
   ];
 
   return (
-    <div className="flex h-screen">
-      {/* Minimal sidebar for dashboard only */}
-      <aside className="w-56 shrink-0 bg-white border-r border-gray-100 flex flex-col">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-          <div className="w-6 h-6 bg-[#0f6e56] rounded-md flex items-center justify-center">
-            <Shield className="w-3.5 h-3.5 text-white" />
+    <div className="flex h-screen overflow-hidden bg-[var(--background)]">
+      <aside className="surface-panel flex w-72 shrink-0 flex-col border-r border-[var(--sidebar-border)] p-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--primary)] text-[var(--primary-foreground)] shadow-soft">
+            <Shield className="h-5 w-5" />
           </div>
-          <span className="font-semibold text-gray-900 text-sm">Whānaki</span>
+          <div>
+            <p className="font-serif text-2xl font-bold text-[var(--foreground)]">Whanaki</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted-foreground)]">Workspace home</p>
+          </div>
         </div>
-        <nav className="flex-1 p-3 space-y-0.5">
-          {[
-            { href: "/chat",      icon: MessageSquare, label: "Chat"      },
-            { href: "/documents", icon: FileText,      label: "Documents" },
-            { href: "/usage",     icon: BarChart2,     label: "Usage"     },
-          ].map(({ href, icon: Icon, label }) => (
-            <Link key={href} href={href} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-              <Icon className="w-4 h-4 text-gray-400" />{label}
-            </Link>
-          ))}
-        </nav>
+
+        <div className="surface-card mt-8 rounded-[1.75rem] p-5">
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-foreground)]">System posture</p>
+          <p className="mt-3 text-sm leading-7 text-[var(--foreground)]">
+            Your workspace is ready for document ingestion, cited answers, and team based review.
+          </p>
+        </div>
+
+        <div className="mt-auto rounded-[1.75rem] bg-[rgba(200,230,201,0.55)] p-5">
+          <div className="flex items-center gap-2 text-[var(--accent-foreground)]">
+            <Sparkles className="h-4 w-4" />
+            <p className="text-xs font-semibold uppercase tracking-[0.22em]">Ready state</p>
+          </div>
+          <p className="mt-2 text-sm leading-7 text-[var(--foreground)]">
+            Start with documents if you want stronger citations on the first conversation.
+          </p>
+        </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto bg-gray-50 p-10">
-        <div className="max-w-2xl">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            Kia ora, {user?.firstName ?? "there"} 👋
+      <main className="flex-1 overflow-y-auto px-8 py-10 lg:px-12">
+        <section className="surface-panel rounded-[2rem] p-8">
+          <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted-foreground)]">Dashboard</p>
+          <h1 className="mt-3 text-5xl font-bold text-[var(--foreground)]">
+            Kia ora, {user?.firstName ?? "there"}
           </h1>
-          <p className="text-gray-500 mb-8">Your workspace is ready.</p>
+          <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--muted-foreground)]">
+            The workspace is live. Move into chat, shape the underlying document set, or review usage before inviting the rest of your team.
+          </p>
+        </section>
 
-          <div className="grid gap-4">
-            {cards.map(({ href, icon: Icon, title, desc, cta }) => (
-              <Link key={href} href={href} className="group bg-white rounded-2xl border border-gray-200 px-5 py-4 flex items-center gap-4 hover:border-[#9fe1cb] transition-colors">
-                <div className="w-10 h-10 bg-[#e1f5ee] rounded-xl flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5 text-[#0f6e56]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">{title}</p>
-                  <p className="text-sm text-gray-500">{desc}</p>
-                </div>
-                <span className="text-sm text-[#0f6e56] font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                  {cta}<ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </Link>
-            ))}
+        <section className="mt-8 grid gap-5 lg:grid-cols-3">
+          {cards.map(({ href, icon: Icon, title, desc, cta }) => (
+            <Link key={href} href={href} className="surface-card group rounded-[1.85rem] p-6 transition-all hover:-translate-y-1">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[1.15rem] bg-[rgba(200,230,201,0.62)] text-[var(--primary)]">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h2 className="mt-5 text-2xl font-bold text-[var(--foreground)]">{title}</h2>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{desc}</p>
+              <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)]">
+                {cta}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
+          ))}
+        </section>
+
+        <section className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="surface-card rounded-[1.85rem] p-6">
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-foreground)]">Workspace mood</p>
+            <p className="mt-3 text-lg font-semibold text-[var(--foreground)]">
+              Built to feel more like a research room than a generic assistant shell.
+            </p>
+            <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">
+              This pass keeps the functional architecture intact while giving the interface stronger materials,
+              typography, and hierarchy.
+            </p>
           </div>
 
-          <div className="mt-8 bg-[#e1f5ee] border border-[#9fe1cb] rounded-xl p-4">
-            <p className="text-sm text-[#0f6e56] font-medium mb-1 flex items-center gap-1.5">
-              <Shield className="w-4 h-4" />NZ data sovereignty
-            </p>
-            <p className="text-sm text-[#0a5441]">
-              All AI processing happens on DigitalOcean servers in Sydney. Your documents never leave the region.
+          <div className="rounded-[1.85rem] bg-[var(--primary)] p-6 text-[var(--primary-foreground)] shadow-soft">
+            <p className="text-xs uppercase tracking-[0.24em] text-[rgba(255,255,255,0.72)]">Data posture</p>
+            <p className="mt-3 text-2xl font-bold">Regional custody remains central.</p>
+            <p className="mt-3 text-sm leading-7 text-[rgba(255,255,255,0.82)]">
+              Documents, retrieval, and model output all stay framed as a controlled workspace flow rather than an open ended AI novelty.
             </p>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );

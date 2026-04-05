@@ -4,36 +4,32 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { BarChart2, Zap, Scale, Brain, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/ui";
-import { Spinner } from "@/components/ui";
+import { PageHeader, Spinner } from "@/components/ui";
 import { api, type UsageSummary } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const MODEL_LABELS: Record<string, { label: string; icon: React.ReactNode; colour: string }> = {
-  "llama3.2:3b":  { label: "Pōtiki (Fast)",      icon: <Zap className="w-3.5 h-3.5" />,   colour: "bg-green-100 text-green-700"  },
-  "llama3.1:8b":  { label: "Kahurangi (Balanced)", icon: <Scale className="w-3.5 h-3.5" />, colour: "bg-blue-100 text-blue-700"    },
-  "qwen2.5:14b":  { label: "Tūī (Thorough)",      icon: <Brain className="w-3.5 h-3.5" />, colour: "bg-purple-100 text-purple-700" },
+  "llama3.2:3b": { label: "Potiki", icon: <Zap className="h-3.5 w-3.5" />, colour: "bg-[rgba(200,230,201,0.72)] text-[var(--primary)]" },
+  "llama3.1:8b": { label: "Kahurangi", icon: <Scale className="h-3.5 w-3.5" />, colour: "bg-[rgba(240,233,224,0.95)] text-[var(--foreground)]" },
+  "qwen2.5:14b": { label: "Tui", icon: <Brain className="h-3.5 w-3.5" />, colour: "bg-[var(--primary)] text-[var(--primary-foreground)]" },
 };
 
-function UsageBar({ value, max, colour = "bg-[#0f6e56]" }: { value: number; max: number; colour?: string }) {
+function UsageBar({ value, max, colour = "bg-[var(--primary)]" }: { value: number; max: number; colour?: string }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   const warn = pct >= 80;
   return (
-    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-      <div
-        className={cn("h-2 rounded-full transition-all", warn ? "bg-amber-500" : colour)}
-        style={{ width: `${pct}%` }}
-      />
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--muted)]">
+      <div className={cn("h-2.5 rounded-full transition-all", warn ? "bg-[var(--destructive)]" : colour)} style={{ width: `${pct}%` }} />
     </div>
   );
 }
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
-      <p className="text-2xl font-bold text-gray-900">{value.toLocaleString()}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    <div className="surface-card rounded-[1.6rem] p-5">
+      <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">{label}</p>
+      <p className="mt-3 text-3xl font-bold text-[var(--foreground)]">{value.toLocaleString()}</p>
+      {sub && <p className="mt-1 text-xs text-[var(--muted-foreground)]">{sub}</p>}
     </div>
   );
 }
@@ -47,8 +43,13 @@ export default function UsagePage() {
     (async () => {
       const token = await getToken();
       if (!token) return;
-      try { setUsage(await api.usage.summary(token)); }
-      catch { /* silent */ } finally { setLoading(false); }
+      try {
+        setUsage(await api.usage.summary(token));
+      } catch {
+        // ignore
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [getToken]);
 
@@ -59,72 +60,59 @@ export default function UsagePage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Usage"
-        description={`${new Date().toLocaleString("en-NZ", { month: "long", year: "numeric" })} · ${planLabel} plan`}
-      />
+      <PageHeader title="Usage" description={`${new Date().toLocaleString("en-NZ", { month: "long", year: "numeric" })} / ${planLabel} plan`} />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-8">
         {loading ? (
           <Spinner className="py-20" />
         ) : !usage ? (
-          <p className="text-gray-400 text-sm text-center py-20">Could not load usage data.</p>
+          <p className="py-20 text-center text-sm text-[var(--muted-foreground)]">Could not load usage data.</p>
         ) : (
-          <div className="max-w-2xl space-y-6">
-
-            {/* Query quota */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-gray-700">Monthly queries</p>
-                <span className={cn("text-sm font-semibold", pctUsed >= 80 ? "text-amber-600" : "text-gray-900")}>
-                  {usage.query_count} / {limitLabel === "Unlimited" ? "∞" : limitLabel}
-                </span>
+          <div className="max-w-5xl space-y-6">
+            <div className="surface-card rounded-[1.8rem] p-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Monthly queries</p>
+                  <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">{usage.query_count} / {limitLabel}</p>
+                </div>
+                <div className={cn("rounded-full px-4 py-2 text-sm font-semibold", pctUsed >= 80 ? "bg-[rgba(198,40,40,0.1)] text-[var(--destructive)]" : "bg-[rgba(200,230,201,0.7)] text-[var(--accent-foreground)]")}>
+                  {pctUsed}% used
+                </div>
               </div>
-              <UsageBar value={usage.query_count} max={usage.queries_included === -1 ? usage.query_count : usage.queries_included} />
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-xs text-gray-400">{pctUsed}% used</p>
-                <p className="text-xs text-gray-400">
-                  {remaining === "Unlimited" ? "Unlimited remaining" : `${remaining} remaining`}
-                </p>
+              <div className="mt-5">
+                <UsageBar value={usage.query_count} max={usage.queries_included === -1 ? usage.query_count : usage.queries_included} />
               </div>
-              {pctUsed >= 80 && pctUsed < 100 && (
-                <p className="mt-2 text-xs text-amber-600 font-medium">
-                  ⚠ Approaching your monthly limit. Consider upgrading your plan.
-                </p>
-              )}
-              {pctUsed >= 100 && (
-                <p className="mt-2 text-xs text-red-600 font-medium">
-                  Monthly limit reached. Additional queries are paused until next month.
-                </p>
-              )}
+              <div className="mt-3 flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+                <p>{remaining === "Unlimited" ? "Unlimited remaining" : `${remaining} remaining`}</p>
+                <p>{usage.plan !== "enterprise" ? "Upgrade anytime from billing" : "Unlimited workspace"}</p>
+              </div>
             </div>
 
-            {/* Stats grid */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-5 md:grid-cols-3">
               <StatCard label="Queries this month" value={usage.query_count} />
-              <StatCard label="Total tokens in"  value={usage.total_input_tokens.toLocaleString()} sub="prompt tokens" />
-              <StatCard label="Total tokens out" value={usage.total_output_tokens.toLocaleString()} sub="generated tokens" />
+              <StatCard label="Input tokens" value={usage.total_input_tokens.toLocaleString()} sub="Prompt side total" />
+              <StatCard label="Output tokens" value={usage.total_output_tokens.toLocaleString()} sub="Generated text total" />
             </div>
 
-            {/* Model breakdown */}
             {Object.keys(usage.model_breakdown).length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <p className="text-sm font-medium text-gray-700 mb-4">Queries by model</p>
-                <div className="space-y-3">
+              <div className="surface-card rounded-[1.8rem] p-6">
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Model distribution</p>
+                <div className="mt-5 space-y-4">
                   {Object.entries(usage.model_breakdown)
                     .sort(([, a], [, b]) => b - a)
                     .map(([model, count]) => {
-                      const cfg = MODEL_LABELS[model] ?? { label: model, icon: <BarChart2 className="w-3.5 h-3.5" />, colour: "bg-gray-100 text-gray-600" };
+                      const cfg = MODEL_LABELS[model] ?? { label: model, icon: <BarChart2 className="h-3.5 w-3.5" />, colour: "bg-[var(--muted)] text-[var(--foreground)]" };
                       const pct = usage.query_count > 0 ? Math.round((count / usage.query_count) * 100) : 0;
                       return (
                         <div key={model}>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-md", cfg.colour)}>
-                              {cfg.icon}{cfg.label}
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <span className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold", cfg.colour)}>
+                              {cfg.icon}
+                              {cfg.label}
                             </span>
-                            <span className="text-sm text-gray-600">{count} queries <span className="text-gray-400">({pct}%)</span></span>
+                            <span className="text-sm text-[var(--muted-foreground)]">{count} queries ({pct}%)</span>
                           </div>
-                          <UsageBar value={count} max={usage.query_count} />
+                          <UsageBar value={count} max={usage.query_count} colour="bg-[var(--chart-2)]" />
                         </div>
                       );
                     })}
@@ -132,16 +120,21 @@ export default function UsagePage() {
               </div>
             )}
 
-            {/* Upgrade CTA */}
             {usage.plan !== "enterprise" && (
-              <div className="bg-gray-900 rounded-xl p-5 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium mb-0.5">Need more queries?</p>
-                  <p className="text-gray-400 text-sm">Upgrade to Professional for 1,000/mo or Enterprise for unlimited.</p>
+              <div className="rounded-[1.8rem] bg-[var(--primary)] p-6 text-[var(--primary-foreground)] shadow-soft">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-[rgba(255,255,255,0.72)]">Growth path</p>
+                    <p className="mt-2 text-2xl font-bold">Need a wider monthly allowance?</p>
+                    <p className="mt-2 text-sm leading-7 text-[rgba(255,255,255,0.8)]">
+                      Move to Professional for a larger working range or Enterprise for uncapped query volume.
+                    </p>
+                  </div>
+                  <a href="/billing" className="inline-flex items-center gap-2 rounded-full bg-[rgba(255,255,255,0.16)] px-5 py-3 text-sm font-semibold transition hover:bg-[rgba(255,255,255,0.24)]">
+                    <TrendingUp className="h-4 w-4" />
+                    Upgrade
+                  </a>
                 </div>
-                <a href="/billing" className="shrink-0 bg-[#0f6e56] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#0a5441] transition-colors flex items-center gap-1.5">
-                  <TrendingUp className="w-4 h-4" />Upgrade
-                </a>
               </div>
             )}
           </div>

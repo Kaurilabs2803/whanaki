@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { Shield } from "lucide-react";
 
 export default function OnboardingPage() {
   const { getToken } = useAuth();
@@ -51,70 +52,84 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-gray-200 p-8 w-full max-w-md">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Set up your workspace</h1>
-          <p className="text-gray-500 text-sm">This takes 30 seconds. You can change everything later.</p>
+    <div className="flex min-h-screen items-center justify-center bg-[var(--background)] p-6">
+      <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="surface-card rounded-[2rem] p-8 lg:p-10">
+          <div className="flex h-14 w-14 items-center justify-center rounded-[1.4rem] bg-[var(--primary)] text-[var(--primary-foreground)] shadow-soft">
+            <Shield className="h-6 w-6" />
+          </div>
+          <p className="mt-6 text-xs uppercase tracking-[0.26em] text-[var(--muted-foreground)]">Workspace setup</p>
+          <h1 className="mt-3 text-4xl font-bold text-[var(--foreground)]">Create the first room for your knowledge base.</h1>
+          <p className="mt-4 text-sm leading-7 text-[var(--muted-foreground)]">
+            This establishes the workspace identity that sits behind documents, citations, and team access. You can refine the details later in settings.
+          </p>
+          <div className="mt-8 rounded-[1.5rem] bg-[rgba(200,230,201,0.55)] p-5">
+            <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent-foreground)]">What happens next</p>
+            <p className="mt-2 text-sm leading-7 text-[var(--foreground)]">
+              We create the workspace, prepare its knowledge base, and bring you straight into the dashboard.
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
-            <input
-              type="text"
-              value={form.full_name}
-              onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
-              placeholder="Jane Smith"
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#0f6e56] focus:ring-1 focus:ring-[#0f6e56]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Organisation name</label>
-            <input
-              type="text"
-              value={form.organisation_name}
-              onChange={(e) => handleOrgName(e.target.value)}
-              placeholder="Smith Legal Ltd"
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#0f6e56] focus:ring-1 focus:ring-[#0f6e56]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Workspace URL</label>
-            <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden focus-within:border-[#0f6e56] focus-within:ring-1 focus-within:ring-[#0f6e56]">
-              <span className="px-3 py-2 bg-gray-50 text-gray-400 text-sm border-r border-gray-200 shrink-0">
-                whanaki.kaurilabs.kiwi/
-              </span>
+        <div className="surface-card rounded-[2rem] p-8 lg:p-10">
+          <div className="space-y-5">
+            <div>
+              <label className="block text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Your name</label>
               <input
                 type="text"
-                value={form.slug}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-                  }))
-                }
-                placeholder="smith-legal"
-                className="flex-1 px-3 py-2 text-sm bg-white focus:outline-none"
+                value={form.full_name}
+                onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
+                placeholder="Jane Smith"
+                className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-sm text-[var(--foreground)] focus:border-[rgba(46,125,50,0.24)] focus:outline-none"
               />
             </div>
-          </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">
-              {error}
+            <div>
+              <label className="block text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Organisation name</label>
+              <input
+                type="text"
+                value={form.organisation_name}
+                onChange={(e) => handleOrgName(e.target.value)}
+                placeholder="Smith Legal Ltd"
+                className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[rgba(255,255,255,0.72)] px-4 py-3 text-sm text-[var(--foreground)] focus:border-[rgba(46,125,50,0.24)] focus:outline-none"
+              />
             </div>
-          )}
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading || !form.organisation_name || !form.slug || !form.full_name}
-            className="w-full bg-[#0f6e56] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#0a5441] transition disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {loading ? "Creating workspace…" : "Create workspace →"}
-          </button>
+            <div>
+              <label className="block text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Workspace URL</label>
+              <div className="mt-2 flex items-center overflow-hidden rounded-[1rem] border border-[var(--border)] bg-[rgba(255,255,255,0.72)]">
+                <span className="shrink-0 border-r border-[var(--border)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
+                  whanaki.kaurilabs.kiwi/
+                </span>
+                <input
+                  type="text"
+                  value={form.slug}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                    }))
+                  }
+                  placeholder="smith-legal"
+                  className="flex-1 bg-transparent px-4 py-3 text-sm text-[var(--foreground)] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="rounded-[1rem] border border-[rgba(198,40,40,0.18)] bg-[rgba(198,40,40,0.08)] px-4 py-3 text-sm text-[var(--destructive)]">
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !form.organisation_name || !form.slug || !form.full_name}
+              className="w-full rounded-full bg-[var(--primary)] py-3.5 text-sm font-semibold text-[var(--primary-foreground)] shadow-soft transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {loading ? "Creating workspace..." : "Create workspace"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -10,11 +10,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/chat",      icon: MessageSquare, label: "Chat"      },
-  { href: "/documents", icon: FileText,      label: "Documents" },
-  { href: "/usage",     icon: BarChart2,     label: "Usage"     },
-  { href: "/billing",   icon: CreditCard,    label: "Billing"   },
-  { href: "/settings",  icon: Settings,      label: "Settings"  },
+  { href: "/chat", icon: MessageSquare, label: "Chat" },
+  { href: "/documents", icon: FileText, label: "Documents" },
+  { href: "/usage", icon: BarChart2, label: "Usage" },
+  { href: "/billing", icon: CreditCard, label: "Billing" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 interface SidebarProps {
@@ -26,22 +26,32 @@ export function AppShell({ children }: SidebarProps) {
   const { user } = useUser();
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-56 shrink-0 bg-white border-r border-gray-100 flex flex-col">
-        {/* Logo */}
-        <div className="px-5 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-[#0f6e56] rounded-md flex items-center justify-center">
-              <Shield className="w-3.5 h-3.5 text-white" />
+    <div className="flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+      <aside className="grain-bg surface-panel relative flex w-72 shrink-0 flex-col overflow-hidden border-r border-[var(--sidebar-border)]">
+        <div className="hero-orb left-[-3rem] top-[-3rem] h-32 w-32 bg-[rgba(76,175,80,0.18)]" />
+        <div className="hero-orb bottom-[10%] right-[-2rem] h-24 w-24 bg-[rgba(62,39,35,0.1)]" />
+
+        <div className="relative border-b border-[var(--sidebar-border)] px-6 py-6">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)] shadow-soft">
+              <Shield className="h-5 w-5" />
             </div>
-            <span className="font-semibold text-gray-900 text-sm">Whānaki</span>
+            <div>
+              <p className="font-serif text-xl font-bold text-[var(--sidebar-foreground)]">Whanaki</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted-foreground)]">
+                Sovereign Knowledge
+              </p>
+            </div>
           </div>
-          <p className="text-[10px] text-[#0f6e56] mt-0.5 pl-8">NZ data · NZ servers</p>
+          <div className="rounded-2xl border border-[rgba(46,125,50,0.16)] bg-[rgba(255,255,255,0.45)] px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-foreground)]">Operating model</p>
+            <p className="mt-1 text-sm font-medium text-[var(--sidebar-foreground)]">
+              Cited answers, document grounded retrieval, regional data custody.
+            </p>
+          </div>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        <nav className="relative flex-1 space-y-1 overflow-y-auto px-4 py-5">
           {NAV.map(({ href, icon: Icon, label }) => {
             const active = pathname.startsWith(href);
             return (
@@ -49,40 +59,47 @@ export function AppShell({ children }: SidebarProps) {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors group",
+                  "group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition-all",
                   active
-                    ? "bg-[#e1f5ee] text-[#0a5441] font-medium"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                    ? "border-[rgba(46,125,50,0.2)] bg-[rgba(200,230,201,0.72)] text-[var(--accent-foreground)] shadow-soft"
+                    : "border-transparent text-[var(--muted-foreground)] hover:border-[rgba(46,125,50,0.12)] hover:bg-[rgba(255,255,255,0.45)] hover:text-[var(--sidebar-foreground)]"
                 )}
               >
-                <Icon className={cn("w-4 h-4 shrink-0", active ? "text-[#0f6e56]" : "text-gray-400 group-hover:text-gray-600")} />
-                {label}
-                {active && <ChevronRight className="w-3 h-3 ml-auto text-[#0f6e56]" />}
+                <span
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors",
+                    active
+                      ? "bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)]"
+                      : "bg-[rgba(255,255,255,0.5)] text-[var(--muted-foreground)] group-hover:text-[var(--accent-foreground)]"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="font-medium">{label}</span>
+                {active && <ChevronRight className="ml-auto h-4 w-4 text-[var(--accent-foreground)]" />}
               </Link>
             );
           })}
         </nav>
 
-        {/* User */}
-        <div className="p-3 border-t border-gray-100">
-          <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg">
-            <UserButton afterSignOutUrl="/" />
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-gray-700 truncate">
-                {user?.firstName} {user?.lastName}
-              </p>
-              <p className="text-[10px] text-gray-400 truncate">
-                {user?.emailAddresses[0]?.emailAddress}
-              </p>
+        <div className="relative border-t border-[var(--sidebar-border)] px-4 py-4">
+          <div className="rounded-2xl border border-[rgba(46,125,50,0.12)] bg-[rgba(255,255,255,0.5)] p-4">
+            <div className="flex items-center gap-3">
+              <UserButton afterSignOutUrl="/" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-[var(--sidebar-foreground)]">
+                  {user?.fullName ?? user?.firstName ?? "Workspace user"}
+                </p>
+                <p className="truncate text-xs text-[var(--muted-foreground)]">
+                  {user?.emailAddresses[0]?.emailAddress}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 min-w-0 overflow-hidden flex flex-col">
-        {children}
-      </main>
+      <main className="min-w-0 flex-1 overflow-hidden">{children}</main>
     </div>
   );
 }

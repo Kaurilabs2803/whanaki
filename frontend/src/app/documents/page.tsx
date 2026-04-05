@@ -11,11 +11,12 @@ import { formatBytes, formatDate, cn } from "@/lib/utils";
 
 function DocStatus({ status }: { status: Document["status"] }) {
   const cfg = {
-    ready:      { label: "Ready",      variant: "success" as const, icon: <CheckCircle className="w-3 h-3" /> },
-    processing: { label: "Processing", variant: "info" as const,    icon: <Loader2 className="w-3 h-3 animate-spin" /> },
-    uploading:  { label: "Uploading",  variant: "default" as const, icon: <Loader2 className="w-3 h-3 animate-spin" /> },
-    failed:     { label: "Failed",     variant: "error" as const,   icon: <AlertCircle className="w-3 h-3" /> },
+    ready: { label: "Ready", variant: "success" as const, icon: <CheckCircle className="h-3 w-3" /> },
+    processing: { label: "Processing", variant: "info" as const, icon: <Loader2 className="h-3 w-3 animate-spin" /> },
+    uploading: { label: "Uploading", variant: "default" as const, icon: <Loader2 className="h-3 w-3 animate-spin" /> },
+    failed: { label: "Failed", variant: "error" as const, icon: <AlertCircle className="h-3 w-3" /> },
   }[status];
+
   return <Badge variant={cfg.variant} icon={cfg.icon}>{cfg.label}</Badge>;
 }
 
@@ -31,11 +32,18 @@ export default function DocumentsPage() {
   const load = async () => {
     const token = await getToken();
     if (!token) return;
-    try { setDocuments(await api.documents.list(token)); }
-    catch { /* silent */ } finally { setLoading(false); }
+    try {
+      setDocuments(await api.documents.list(token));
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   useEffect(() => {
     const polling = documents.some((d) => d.status === "processing" || d.status === "uploading");
@@ -54,7 +62,9 @@ export default function DocumentsPage() {
       try {
         const doc = await api.documents.upload(token, file);
         setDocuments((prev) => [doc, ...prev]);
-      } catch (e: any) { setUploadError(e.message || "Upload failed"); }
+      } catch (e: any) {
+        setUploadError(e.message || "Upload failed");
+      }
     }
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
@@ -75,85 +85,104 @@ export default function DocumentsPage() {
     <AppShell>
       <PageHeader
         title="Documents"
-        description="Upload documents to your knowledge base. AI will cite them in answers."
-        action={
-          <Button icon={<Upload className="w-4 h-4" />} onClick={() => fileRef.current?.click()} loading={uploading}>
-            Upload files
-          </Button>
-        }
+        description="Curate the materials that shape retrieval, citations, and answer quality across the workspace."
+        action={<Button icon={<Upload className="h-4 w-4" />} onClick={() => fileRef.current?.click()} loading={uploading}>Upload files</Button>}
       />
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-8">
         <input ref={fileRef} type="file" multiple accept=".pdf,.docx,.doc,.txt,.md" className="hidden" onChange={(e) => handleUpload(e.target.files)} />
 
-        {documents.length > 0 && (
-          <div className="flex items-center gap-4 mb-5">
-            <span className="text-2xl font-bold text-gray-900">{ready}</span>
-            <span className="text-sm text-gray-500">documents ready</span>
-            {processing > 0 && <span className="text-sm text-blue-600 flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" />{processing} processing</span>}
-            <button onClick={load} className="ml-auto text-gray-400 hover:text-gray-600"><RefreshCw className="w-4 h-4" /></button>
+        <section className="mb-6 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+          <div
+            onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); handleUpload(e.dataTransfer.files); }}
+            className={cn(
+              "surface-card cursor-pointer rounded-[1.9rem] border-2 border-dashed p-8 transition-colors",
+              dragOver ? "border-[var(--primary)] bg-[rgba(200,230,201,0.46)]" : "border-[rgba(46,125,50,0.16)] hover:border-[rgba(46,125,50,0.26)]"
+            )}
+          >
+            <div className="flex flex-col items-start gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-[1.4rem] bg-[rgba(200,230,201,0.62)] text-[var(--primary)]">
+                {uploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-[var(--foreground)]">{uploading ? "Uploading in progress" : "Drop files into the workspace"}</h2>
+                <p className="mt-2 text-sm leading-7 text-[var(--muted-foreground)]">
+                  Add PDFs, Word documents, or plain text and Whanaki will prepare them for retrieval and citation.
+                </p>
+              </div>
+              <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted-foreground)]">PDF / DOCX / DOC / TXT / MD / Max 50 MB</p>
+            </div>
           </div>
-        )}
 
-        <div
-          onClick={() => fileRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => { e.preventDefault(); setDragOver(false); handleUpload(e.dataTransfer.files); }}
-          className={cn("border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors mb-5",
-            dragOver ? "border-[#0f6e56] bg-[#e1f5ee]" : "border-gray-200 hover:border-[#9fe1cb] hover:bg-gray-50")}
-        >
-          <div className="flex flex-col items-center gap-2">
-            {uploading ? <Loader2 className="w-7 h-7 text-[#0f6e56] animate-spin" /> : <Upload className="w-7 h-7 text-gray-300" />}
-            <p className="text-sm font-medium text-gray-600">{uploading ? "Uploading…" : dragOver ? "Drop to upload" : "Drop files or click to browse"}</p>
-            <p className="text-xs text-gray-400">PDF, DOCX, TXT, MD · Max 50 MB</p>
+          <div className="surface-card rounded-[1.9rem] p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted-foreground)]">Corpus status</p>
+                <h3 className="mt-2 text-3xl font-bold text-[var(--foreground)]">{ready}</h3>
+                <p className="text-sm text-[var(--muted-foreground)]">documents ready for retrieval</p>
+              </div>
+              <button onClick={load} className="rounded-full bg-[var(--muted)] p-3 text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
+                <RefreshCw className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-[1.35rem] bg-[rgba(200,230,201,0.55)] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--accent-foreground)]">Ready</p>
+                <p className="mt-2 text-2xl font-bold">{ready}</p>
+              </div>
+              <div className="rounded-[1.35rem] bg-[rgba(240,233,224,0.95)] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Processing</p>
+                <p className="mt-2 text-2xl font-bold">{processing}</p>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
-        {uploadError && <Alert variant="error" onDismiss={() => setUploadError("")} className="mb-4">{uploadError}</Alert>}
+        {uploadError && <Alert variant="error" onDismiss={() => setUploadError("")} className="mb-5">{uploadError}</Alert>}
 
         {loading ? (
-          <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 text-gray-300 animate-spin" /></div>
+          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-[var(--muted-foreground)]" /></div>
         ) : documents.length === 0 ? (
           <EmptyState
-            icon={<FileText className="w-6 h-6" />}
+            icon={<FileText className="h-7 w-7" />}
             title="No documents yet"
-            description="Upload PDFs, Word documents, or text files to get started."
-            action={<Button onClick={() => fileRef.current?.click()} icon={<Upload className="w-4 h-4" />}>Upload first document</Button>}
+            description="Upload your first set of source material to give chat grounded context and visible citations."
+            action={<Button onClick={() => fileRef.current?.click()} icon={<Upload className="h-4 w-4" />}>Upload first document</Button>}
           />
         ) : (
           <Card>
             {documents.map((doc, i) => (
-              <div key={doc.id} className={cn("flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors", i < documents.length - 1 && "border-b border-gray-100")}>
-                <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 text-gray-400" />
+              <div key={doc.id} className={cn("flex items-center gap-4 px-6 py-5 transition-colors hover:bg-[rgba(255,255,255,0.42)]", i < documents.length - 1 && "border-b border-[var(--border)]")}>
+                <div className="flex h-12 w-12 items-center justify-center rounded-[1.2rem] bg-[rgba(200,230,201,0.42)] text-[var(--primary)]">
+                  <FileText className="h-5 w-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{doc.original_filename}</p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <span className="text-xs text-gray-400">{formatBytes(doc.size_bytes)}</span>
-                    {doc.page_count && <><span className="text-gray-200">·</span><span className="text-xs text-gray-400">{doc.page_count}p</span></>}
-                    <span className="text-gray-200">·</span>
-                    <span className="text-xs text-gray-400">{formatDate(doc.created_at)}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[var(--foreground)]">{doc.original_filename}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                    <span>{formatBytes(doc.size_bytes)}</span>
+                    {doc.page_count && <span>/ {doc.page_count} pages</span>}
+                    <span>/ {formatDate(doc.created_at)}</span>
                     {doc.tags.map((tag) => (
-                      <span key={tag} className="inline-flex items-center gap-0.5 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
-                        <Tag className="w-2.5 h-2.5" />{tag}
+                      <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-[var(--muted)] px-2 py-1 text-[10px] font-semibold">
+                        <Tag className="h-2.5 w-2.5" />
+                        {tag}
                       </span>
                     ))}
                   </div>
-                  {doc.status === "failed" && doc.error_message && <p className="text-xs text-red-500 mt-1">{doc.error_message}</p>}
+                  {doc.status === "failed" && doc.error_message && <p className="mt-1 text-xs text-[var(--destructive)]">{doc.error_message}</p>}
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-3">
                   <DocStatus status={doc.status} />
-                  <button onClick={() => handleDelete(doc.id)} disabled={doc.status === "processing"} className="text-gray-300 hover:text-red-400 transition-colors disabled:opacity-30">
-                    <Trash2 className="w-4 h-4" />
+                  <button onClick={() => handleDelete(doc.id)} disabled={doc.status === "processing"} className="text-[var(--muted-foreground)] transition hover:text-[var(--destructive)] disabled:opacity-30">
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
             ))}
           </Card>
         )}
-
-        {processing > 0 && <p className="text-xs text-gray-400 mt-3 text-center">Processing takes 1–3 minutes. This page auto-refreshes.</p>}
       </div>
     </AppShell>
   );

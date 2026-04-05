@@ -1,7 +1,5 @@
 import { cn } from "@/lib/utils";
 
-// ── Badge ──────────────────────────────────────────────────────────────────────
-
 interface BadgeProps {
   variant?: "default" | "success" | "warning" | "error" | "info";
   children: React.ReactNode;
@@ -10,27 +8,27 @@ interface BadgeProps {
 }
 
 const badgeVariants = {
-  default: "bg-gray-100 text-gray-600",
-  success: "bg-green-50 text-green-700",
-  warning: "bg-amber-50 text-amber-700",
-  error:   "bg-red-50 text-red-600",
-  info:    "bg-blue-50 text-blue-600",
+  default: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+  success: "bg-[rgba(76,175,80,0.14)] text-[var(--primary)]",
+  warning: "bg-[rgba(109,76,65,0.14)] text-[var(--foreground)]",
+  error: "bg-[rgba(198,40,40,0.12)] text-[var(--destructive)]",
+  info: "bg-[rgba(200,230,201,0.82)] text-[var(--accent-foreground)]",
 };
 
 export function Badge({ variant = "default", children, className, icon }: BadgeProps) {
   return (
-    <span className={cn(
-      "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md",
-      badgeVariants[variant],
-      className
-    )}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
+        badgeVariants[variant],
+        className
+      )}
+    >
       {icon}
       {children}
     </span>
   );
 }
-
-// ── Card ───────────────────────────────────────────────────────────────────────
 
 interface CardProps {
   children: React.ReactNode;
@@ -44,8 +42,8 @@ export function Card({ children, className, onClick, hover }: CardProps) {
     <div
       onClick={onClick}
       className={cn(
-        "bg-white rounded-xl border border-gray-200",
-        hover && "hover:border-[#9fe1cb] transition-colors cursor-pointer",
+        "surface-card rounded-[1.5rem]",
+        hover && "hover:-translate-y-0.5 hover:border-[rgba(46,125,50,0.18)] transition-all cursor-pointer",
         onClick && "cursor-pointer",
         className
       )}
@@ -54,8 +52,6 @@ export function Card({ children, className, onClick, hover }: CardProps) {
     </div>
   );
 }
-
-// ── EmptyState ─────────────────────────────────────────────────────────────────
 
 interface EmptyStateProps {
   icon: React.ReactNode;
@@ -66,18 +62,16 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-      <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 text-gray-300">
+    <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-[rgba(200,230,201,0.56)] text-[var(--primary)] shadow-soft">
         {icon}
       </div>
-      <h3 className="text-sm font-medium text-gray-900 mb-1">{title}</h3>
-      <p className="text-sm text-gray-400 max-w-xs mb-5">{description}</p>
-      {action}
+      <h3 className="text-xl font-bold text-[var(--foreground)]">{title}</h3>
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--muted-foreground)]">{description}</p>
+      {action && <div className="mt-6">{action}</div>}
     </div>
   );
 }
-
-// ── PageHeader ─────────────────────────────────────────────────────────────────
 
 interface PageHeaderProps {
   title: string;
@@ -87,27 +81,26 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 bg-white">
-      <div>
-        <h1 className="text-base font-semibold text-gray-900">{title}</h1>
-        {description && <p className="text-sm text-gray-500 mt-0.5">{description}</p>}
+    <div className="surface-panel border-b px-8 py-6">
+      <div className="flex items-start justify-between gap-6">
+        <div className="max-w-2xl">
+          <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted-foreground)]">Workspace</p>
+          <h1 className="mt-2 text-3xl font-bold text-[var(--foreground)]">{title}</h1>
+          {description && <p className="mt-2 text-sm leading-relaxed text-[var(--muted-foreground)]">{description}</p>}
+        </div>
+        {action && <div className="shrink-0">{action}</div>}
       </div>
-      {action && <div className="ml-4 shrink-0">{action}</div>}
     </div>
   );
 }
-
-// ── Spinner ────────────────────────────────────────────────────────────────────
 
 export function Spinner({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center justify-center", className)}>
-      <div className="w-5 h-5 border-2 border-gray-200 border-t-[#0f6e56] rounded-full animate-spin" />
+      <div className="h-6 w-6 rounded-full border-2 border-[rgba(46,125,50,0.18)] border-t-[var(--primary)] animate-spin" />
     </div>
   );
 }
-
-// ── Alert ──────────────────────────────────────────────────────────────────────
 
 interface AlertProps {
   variant?: "error" | "warning" | "success" | "info";
@@ -117,22 +110,26 @@ interface AlertProps {
 }
 
 const alertVariants = {
-  error:   "bg-red-50 border-red-200 text-red-700",
-  warning: "bg-amber-50 border-amber-200 text-amber-700",
-  success: "bg-green-50 border-green-200 text-green-700",
-  info:    "bg-blue-50 border-blue-200 text-blue-700",
+  error: "bg-[rgba(198,40,40,0.08)] border-[rgba(198,40,40,0.18)] text-[var(--destructive)]",
+  warning: "bg-[rgba(109,76,65,0.1)] border-[rgba(109,76,65,0.16)] text-[var(--foreground)]",
+  success: "bg-[rgba(76,175,80,0.12)] border-[rgba(76,175,80,0.18)] text-[var(--primary)]",
+  info: "bg-[rgba(200,230,201,0.46)] border-[rgba(46,125,50,0.16)] text-[var(--accent-foreground)]",
 };
 
 export function Alert({ variant = "error", children, className, onDismiss }: AlertProps) {
   return (
-    <div className={cn(
-      "flex items-start gap-2 border rounded-xl px-4 py-3 text-sm",
-      alertVariants[variant],
-      className
-    )}>
+    <div
+      className={cn(
+        "flex items-start gap-3 rounded-[1.25rem] border px-4 py-3 text-sm shadow-soft",
+        alertVariants[variant],
+        className
+      )}
+    >
       <span className="flex-1">{children}</span>
       {onDismiss && (
-        <button onClick={onDismiss} className="opacity-60 hover:opacity-100 text-lg leading-none mt-[-1px]">×</button>
+        <button onClick={onDismiss} className="text-lg leading-none opacity-60 hover:opacity-100">
+          x
+        </button>
       )}
     </div>
   );
