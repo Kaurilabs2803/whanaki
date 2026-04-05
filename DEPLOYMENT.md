@@ -581,7 +581,7 @@ openssl rand -hex 24
 
 Copy the output and paste it here:
 ```bash
-RAGFLOW_API_KEY=your-random-key-here
+RAGFLOW_API_KEY=76ab5671edd63b6576f28059
 ```
 
 #### Elasticsearch Password
@@ -593,7 +593,7 @@ openssl rand -hex 16
 
 Paste it:
 ```bash
-ELASTIC_PASSWORD=your-random-password-here
+ELASTIC_PASSWORD=fed3044f3fa2731c
 ```
 
 #### Ollama Host

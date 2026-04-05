@@ -7,7 +7,6 @@ from alembic import context
 # Import your models so Alembic can detect changes
 from app.db.session import Base
 from app.models import *          # noqa: F401,F403 — ensures all models are registered
-from app.models.billing import *  # noqa: F401,F403
 
 from app.core.config import get_settings
 

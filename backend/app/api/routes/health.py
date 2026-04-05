@@ -77,11 +77,9 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         "ragflow": ragflow,
     }
 
-    # Overall status: worst of all services
-    statuses = [s.status for s in services.values()]
-    if "down" in statuses:
-        overall = "degraded"
-    elif "degraded" in statuses:
+    # Overall status: worst of critical services only (RAGFlow is optional)
+    critical_statuses = [services["postgres"].status, services["redis"].status, services["ollama"].status]
+    if "down" in critical_statuses or "degraded" in critical_statuses:
         overall = "degraded"
     else:
         overall = "ok"

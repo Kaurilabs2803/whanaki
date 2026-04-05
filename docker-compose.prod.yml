@@ -52,6 +52,27 @@ services:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
         - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
     restart: always
+    env_file:
+      - .env
+    networks:
+      - whanaki
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=rag_flow
+    volumes:
+      - ragflow_mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - whanaki
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --requirepass ${RAGFLOW_REDIS_PASSWORD}
     networks:
       - whanaki
 
@@ -63,15 +84,20 @@ services:
       # Elasticsearch credentials — must match ELASTIC_PASSWORD below
       - ELASTICSEARCH_USERNAME=elastic
       - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DBNAME=rag_flow
+      - REDIS_PASSWORD=${RAGFLOW_REDIS_PASSWORD}
     volumes:
       - ragflow_data:/ragflow/data
     depends_on:
-      - ragflow-es
+      - mysql
+      - redis
+      - es01
       - ragflow-infinity
     networks:
       - whanaki
 
-  ragflow-es:
+  es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
     restart: always
     environment:
@@ -130,6 +156,7 @@ services:
         max-file: "3"
 
 volumes:
+  ragflow_mysql_data:
   ragflow_data:
   esdata:
   infinity_data:

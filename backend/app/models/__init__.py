@@ -176,20 +176,6 @@ class UsageLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-# ── BillingEvent ───────────────────────────────────────────────────────────────
-
-class BillingEvent(Base):
-    __tablename__ = "billing_events"
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"))
-    stripe_event_id: Mapped[str] = mapped_column(Text, nullable=False)
-    event_type: Mapped[str] = mapped_column(Text, nullable=False)
-    amount_cents: Mapped[Optional[int]] = mapped_column(Integer)
-    currency: Mapped[str] = mapped_column(Text, default="nzd")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
 # ── OllamaModel ────────────────────────────────────────────────────────────────
 
 class OllamaModel(Base):
@@ -206,3 +192,5 @@ class OllamaModel(Base):
     context_length: Mapped[Optional[int]] = mapped_column(Integer)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+from .billing import BillingEvent  # noqa: F401
