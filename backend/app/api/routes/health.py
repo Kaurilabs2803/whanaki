@@ -53,9 +53,11 @@ async def _check_ragflow() -> ServiceHealth:
     try:
         t0 = time.monotonic()
         async with httpx.AsyncClient(timeout=5) as client:
-            r = await client.get(f"{settings.ragflow_host}/v1/health")
+            # RAGFlow v0.24+ has no /v1/health — any HTTP response means the server is up
+            r = await client.get(f"{settings.ragflow_host}/v1/system/version")
         ms = (time.monotonic() - t0) * 1000
-        if r.status_code == 200:
+        # 200 = ok, 404 = server up but endpoint missing, 401 = server up but auth required
+        if r.status_code < 500:
             return ServiceHealth(status="ok", latency_ms=round(ms, 1))
         return ServiceHealth(status="degraded", latency_ms=round(ms, 1), detail=f"HTTP {r.status_code}")
     except Exception as e:
